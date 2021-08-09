@@ -23,19 +23,13 @@ export default function App() {
     if (searchQuery==='') {
       return;
     };
-    // if (setCurrentPage !== currentPage) {
-      // window.scrollTo({
-      //   top: document.documentElement.scrollHeight,
-      //   behavior: 'smooth',
-      // });
-    // }
     
     setIsLoading(true);
 
     searchApi(options)
       .then(hits => {
         setHits((prevState) => [...prevState, ...hits])
-        setCurrentPage(currentPage=>currentPage + 1)
+        // setCurrentPage(currentPage=>currentPage + 1)
       }
       )
       .catch(() => setError('Sorry! Picture not found. Please try again later!!!' ))
@@ -63,17 +57,10 @@ export default function App() {
   const loadMore = () => {
     setCurrentPage(currentPage=>currentPage + 1);
   }
-    // componentDidUpdate(prevProps, prevState) {
-    //     if (prevState.searchQuery !== this.state.searchQuery) {
-    //     this.fetchHits();
-    //     }
-    //     if (this.state.searchQuery !== 2 && prevState.currentPage !== this.state.currentPage) {
-      // window.scrollTo({
-      //   top: document.documentElement.scrollHeight,
-      //   behavior: 'smooth',
-      // });
-    // };
-    // }
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth',
+      });
 
         return ( 
           <>
