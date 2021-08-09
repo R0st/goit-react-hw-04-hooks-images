@@ -1,4 +1,4 @@
-import { Component } from "react";
+import React, { useState, useEffect } from "react";
 // import { ToastContainer } from 'react-toastify';
 import Searchbar from './components/Searchbar'
 import ImageGallery from "./components/ImageGallery";
@@ -6,132 +6,93 @@ import Button from './components/Button'
 import Loader from './components/Loader'
 import searchApi from './searchApi'
 import Modal from './components/Modal'
-import PropTypes from 'prop-types';
 
+export default function App() {
+  const [hits, setHits] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [tags, setTags] = useState('');
+  const [largeImageURL, setLargeImageURL] = useState('');
+  const [error, setError] = useState(null);
 
-export default class App extends Component {
-   static propTypes = {
-        hits: PropTypes.array,
-        searchQuery: PropTypes.string,
-        currentPage: PropTypes.number,
-        isLoading: PropTypes.bool,
-        showModal: PropTypes.bool,
-        largeImageURL: PropTypes.string,
-        tags: PropTypes.string,
-        error: PropTypes.string,
-  }
-    state = {
-        hits: [],
-        searchQuery: '',
-        currentPage: 1,
-        isLoading: false,
-        error: null,
-        showModal: false,
-        largeImageURL: '',
-        tags: '',
-    }
-
-    toogleModal = () => {
-        this.setState(({ showModal }) => ({
-        showModal: !showModal,
-        }));
+  useEffect(() => {
+    const options = { searchQuery, currentPage };
+    
+    if (searchQuery==='') {
+      return;
     };
-
-    onOpenModal = (largeImageURL = '') => {
-        this.setState({ largeImageURL });
-        this.toogleModal();
-    };
-  
-    handleSearchSubmit = query => {
-        this.setState({
-            searchQuery: query,
-            currentPage: 1,
-            hits: [],
-            error: null,
-        });
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        if (prevState.searchQuery !== this.state.searchQuery) {
-        this.fetchHits();
-        }
-        if (this.state.searchQuery !== 2 && prevState.currentPage !== this.state.currentPage) {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: 'smooth',
-      });
-    };
-    }
-
-    // onChangeQuery = query => {
-    //     this.setState({
-    //     searchQuery: query,
-    //     currentPage: 1,
-    //     articles: [],
-    //     error: null,
-    //     });
-    // };
-
-    // fetchHits = () => {
-    //     const { currentPage, searchQuery } = this.state;
-    //     const options = { searchQuery, currentPage };
-
-    //     this.setState({ isLoading: true });
-
-    //    searchApi
-    //     .fetchHits(options)
-    //     .then(hits => {
-    //         this.setState(prevState => ({
-    //         hits: [...prevState.hits, ...hits],
-    //         currentPage: prevState.currentPage + 1,
-    //         }));
-    //     })
-    //     .catch(error => this.setState({ error }))
-    //     .finally(() => this.setState({ isLoading: false }));
-    // };
-
-    fetchHits = () => {
-    const { searchQuery, currentPage } = this.state;
-
-    const options = {
-      searchQuery,
-      currentPage,
-    };
-
-    this.setState({ isLoading: true });
+    // if (setCurrentPage !== currentPage) {
+      // window.scrollTo({
+      //   top: document.documentElement.scrollHeight,
+      //   behavior: 'smooth',
+      // });
+    // }
+    
+    setIsLoading(true);
 
     searchApi(options)
       .then(hits => {
-        this.setState(prevState => ({
-          hits: [...prevState.hits, ...hits],
-          currentPage: prevState.currentPage + 1,
-        }));
-      })
-      .catch(error => this.setState({ error: 'Sorry! Picture not found. Please try again later!!!' }))
-      .finally(() => this.setState({ isLoading: false }));
+        setHits((prevState) => [...prevState, ...hits])
+        setCurrentPage(currentPage=>currentPage + 1)
+      }
+      )
+      .catch(() => setError('Sorry! Picture not found. Please try again later!!!' ))
+      .finally(() => setIsLoading(false));
+  },
+    [searchQuery, currentPage]);
+  
+  const toogleModal = () => {
+    setShowModal(!showModal);
+  };
+
+  const onOpenModal = (largeImageURL = '') => {
+    setLargeImageURL( largeImageURL );
+    setTags(tags);
+    toogleModal();
+  };
+  
+  const handleSearchSubmit = searchQuery => {
+    setSearchQuery(searchQuery);
+    setCurrentPage(1);
+    setHits([]);
+    setError(null);
   }
 
-    render() {
-        const { hits, isLoading, showModal,largeImageURL,tags } = this.state;
-        return (
-             <>   
-                <Searchbar onSubmit={this.handleSearchSubmit} />
-                <ImageGallery hits={hits}  onOpenModal={this.onOpenModal} />
-                
-                {isLoading && <Loader />}
+  const loadMore = () => {
+    setCurrentPage(currentPage=>currentPage + 1);
+  }
+    // componentDidUpdate(prevProps, prevState) {
+    //     if (prevState.searchQuery !== this.state.searchQuery) {
+    //     this.fetchHits();
+    //     }
+    //     if (this.state.searchQuery !== 2 && prevState.currentPage !== this.state.currentPage) {
+      // window.scrollTo({
+      //   top: document.documentElement.scrollHeight,
+      //   behavior: 'smooth',
+      // });
+    // };
+    // }
 
-                {hits.length > 11 && !isLoading && (
-                <Button onClick={this.fetchHits} />
-                )}
+        return ( 
+          <>
+            <Searchbar onSubmit={handleSearchSubmit} />
+            {error && <h2>{error}</h2>}
+            <ImageGallery hits={hits} onOpenModal={onOpenModal}/>
+                
+            {isLoading && <Loader />}
+
+            {hits.length > 11 && !isLoading && (
+            <Button onClick={loadMore} />
+            )}
           
-                {showModal && (
-                <Modal onClose = {this.onOpenModal}>
+            {showModal && (
+            <Modal onClose = {toogleModal}>
                 <img src={largeImageURL} alt={tags} />
-            {/* <button type="button" onClick={this.toogleModal}>Close</button> */}
-                </Modal>
-                    )   
-                }
-            </>
+            </Modal> 
+              )
+             }
+          </>
         )
-    }
 }

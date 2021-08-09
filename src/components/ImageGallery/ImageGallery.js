@@ -9,13 +9,13 @@ const ImageGallery = ({ hits, onOpenModal }) => {
             {hits.map(({ id, webformatURL, largeImageURL }) => {
                 const handleImgClick = () => onOpenModal(largeImageURL);
                 return (
-                    <li key={id}>
+                    // <li key={id}>
                         <ImageGalleryItem
                             key={id}
                             webformatURL={webformatURL}
                             onClick={handleImgClick}
                         />
-                    </li>
+                    // </li>
                 );
             })}
         </ul>
